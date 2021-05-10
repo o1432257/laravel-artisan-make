@@ -1,62 +1,94 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+# Laravel 自定義生成目標類
+###### tags: `Laravel 8` `Artisan Console` `php`
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## 前言
+今天會用Service類來示範如何自定義生成目標類
+### make:controller的源碼位置
+```
+vendor/laravel/framework/src/Illuminate/Routing/Console/ControllerMakeCommand.php
+```
+### 其他的生成命令的位置
+```
+vendor/laravel/framework/src/Illuminate/Foundation/Console
+```
+## 生成命令
+```
+$ php artisan make:command MakeService 
+```
 
-## About Laravel
+### 修改繼承類
+```php=
+class MakeService extends GeneratorCommand
+```
+把繼承類修改成GeneratorCommand
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+刪除方法 handle
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 設置name屬性
+```php=
+protected $name = 'make:service';
+```
+修改$signature屬性為name屬性
+### 設置type屬性
+```php=
+protected $type = 'Service';
+```
+type 類型是自己去定義的，本身沒有特殊含義，可以不用設置。
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+type 屬性值僅僅在創建錯誤的時候，給你一個友好的提示
 
-## Learning Laravel
+[詳細](https://learnku.com/articles/57058)
+### 新增方法
+```php=
+/**
+ * Get the stub file for the generator.
+ *
+ * @return string
+ */
+protected function getStub()
+{
+    // Implement getStub() method.
+    return $this->laravel->basePath('/stubs/service.stub');
+}
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+/**
+ * Get the default namespace for the class.
+ *
+ * @param  string  $rootNamespace
+ * @return string
+ */
+protected function getDefaultNamespace($rootNamespace)
+{
+    return $rootNamespace.'\Services';
+}
+```
+## Stub 定制
+Artisan的make命令可用於創建多種多樣的類，如：控制器、任務、遷移和測試。這些類是使用stub文件生成的，它將根據您的輸入來填充值。
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+您可以使用stub:publish命令來發布最常見的定制stub來實現之：
+```
+$ php artisan stub:publish 
+```
+新增目標類的模板
+```
+# stubs/service.stub
 
-## Laravel Sponsors
+<?php
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+namespace DummyNamespace;
 
-### Premium Partners
+class DummyClass
+{
+    //
+}
+```
+DummyClass 和 DummyNamespace 在繼承的GeneratorCommand類內部會被自動替換成自動生成的類名和設置的命名空間。
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
+## 完成
+![](https://i.imgur.com/Yb71J8M.png)
 
-## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 參考來源
+[Laravel自定义Make命令生成Service类](https://houxin.blog.csdn.net/article/details/115480230)
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+[Laravel自定义Make命令生成目标类](https://learnku.com/articles/57058)
